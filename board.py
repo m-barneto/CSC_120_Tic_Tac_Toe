@@ -46,7 +46,43 @@ def check_win(board, playerId):
   return False
 
 
-def main():
+def is_draw(board):
+  for row in range(len(board)):
+    for col in range(len(board[row])):
+      if board[row][col] == '-':
+        return False
+  return True
+
+
+def is_game_complete(board):
+  if is_draw(board):
+    return 3
+  winner = 0
+  if check_win(board, 1):
+    winner = 1
+  elif check_win(board, 2):
+    winner = 2
+  return winner
+
+
+def valid_move(move, board):
+  if move.count(',') != 1:
+    return "Unexpected format. Please enter a value such as: 0,2"
+  try:
+    temp = move.split(',')
+    x = int(temp[0])
+    y = int(temp[1])
+  except ValueError:
+    return 'Please enter two integers between 0 and 2. ex: 0,2'
+  if x < 0 or x > 2 or y < 0 or y > 2:
+    return 'Out of range, please enter values between 0-2.'
+  if not check_mark(board, x, y):
+    return 'Space is occupied.'
+
+  return 'valid'
+
+
+def test():
   # Unit test print_board
   printBoardTest = [
       ['X', '-', 'O'],
@@ -101,6 +137,43 @@ def main():
       ['X', '-', '-']]
   print("Expected result for check_win(checkWinBoardTestDiag2, 1): True\nResult: ",
         check_win(checkWinBoardTestDiag2, 1))
+
+
+def main():
+  board = [
+      ['-', '-', '-'],
+      ['-', '-', '-'],
+      ['-', '-', '-']]
+  playerTurn = 1
+  winner = is_game_complete(board)
+  while winner == 0:
+    print_board(board)
+    move = input("Player " + str(playerTurn) +
+                 " please enter your move (x,y): ")
+    is_valid = valid_move(move, board)
+    while is_valid != 'valid':
+      print_board(board)
+      print("Invalid move:", is_valid)
+      move = input("Player " + str(playerTurn) +
+                   " please enter your move (x,y): ")
+      is_valid = valid_move(move, board)
+    temp = move.split(',')
+    x = int(temp[0])
+    y = int(temp[1])
+
+    place_mark(board, x, y, playerTurn)
+
+    winner = is_game_complete(board)
+
+    if playerTurn == 1:
+      playerTurn = 2
+    else:
+      playerTurn = 1
+
+  if winner == 3:
+    print("It's a draw!")
+  else:
+    print("The winner is player", str(winner) + "!")
 
 
 main()
