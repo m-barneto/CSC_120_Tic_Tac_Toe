@@ -1,8 +1,20 @@
-def print_board(board):
+import sqlite3
+from datetime import datetime
+
+def print_board(board, returnStr=False):
+  boardStr = ''
   for row in range(len(board)):
     for col in range(len(board[row])):
-      print(board[row][col], end='')
-    print()
+      if returnStr:
+        boardStr += board[row][col]
+      else:
+        print(board[row][col], end='')
+    if returnStr:
+      boardStr += '\n'
+    else:
+      print()
+  if returnStr:
+    return boardStr
 
 
 def check_mark(board, x, y):
@@ -146,6 +158,15 @@ def main():
       ['-', '-', '-']]
   playerTurn = 1
   winner = is_game_complete(board)
+  moves = 0
+
+  conn = sqlite3.connect('tictactoe.db')
+  cur = conn.cursor()
+
+  # Create table
+  cur.execute('CREATE TABLE IF NOT EXISTS games (date text, final_board text, winner text, move_count real)')
+  conn.commit()
+
   while winner == 0:
     print_board(board)
     move = input("Player " + str(playerTurn) +
@@ -164,11 +185,16 @@ def main():
     place_mark(board, x, y, playerTurn)
 
     winner = is_game_complete(board)
-
+    moves += 1
     if playerTurn == 1:
       playerTurn = 2
     else:
       playerTurn = 1
+  
+  winnerText = "Player 1" if winner == 1 else "Player 2" if winner == 2 else "Draw"
+  cur.execute(f"INSERT INTO games VALUES ('{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')}','{print_board(board, True)}','{winnerText}',{moves})")
+  conn.commit()
+  conn.close()
 
   if winner == 3:
     print("It's a draw!")
